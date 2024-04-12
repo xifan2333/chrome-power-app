@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{62981665-D7F2-077D-4C30-504E30245958}</ProjectGuid>
+    <ProjectGuid>{4F6FCF9E-7284-E5DE-629E-A74E52000E42}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>window-addon</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
@@ -48,19 +48,19 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\include\node;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\src;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\config;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\openssl\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\uv\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\zlib;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\v8\include;D:\dev\electron\chrome-power-app-latest\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\include\node;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\src;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\config;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\openssl\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\uv\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\zlib;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\v8\include;C:\Users\xifan\code\chrome-power-app\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus -std:c++17 %(AdditionalOptions)</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>false</OmitFramePointers>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;V8_ENABLE_CHECKS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>true</StringPooling>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -72,7 +72,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Administrator\\AppData\\Local\\node-gyp\\Cache\\18.18.2\\x64\\node.lib&quot;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\xifan\\AppData\\Local\\node-gyp\\Cache\\21.7.1\\x64\\node.lib&quot;</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -84,18 +84,18 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\include\node;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\src;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\config;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\openssl\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\uv\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\zlib;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\v8\include;D:\dev\electron\chrome-power-app-latest\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;V8_ENABLE_CHECKS;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\include\node;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\src;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\config;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\openssl\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\uv\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\zlib;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\v8\include;C:\Users\xifan\code\chrome-power-app\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\include\node;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\src;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\config;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\openssl\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\uv\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\zlib;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\v8\include;D:\dev\electron\chrome-power-app-latest\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\include\node;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\src;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\config;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\openssl\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\uv\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\zlib;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\v8\include;C:\Users\xifan\code\chrome-power-app\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus -std:c++17 %(AdditionalOptions)</AdditionalOptions>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -104,7 +104,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <Optimization>Full</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <StringPooling>true</StringPooling>
@@ -117,7 +117,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\Administrator\\AppData\\Local\\node-gyp\\Cache\\18.18.2\\x64\\node.lib&quot;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\xifan\\AppData\\Local\\node-gyp\\Cache\\21.7.1\\x64\\node.lib&quot;</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -129,8 +129,8 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\include\node;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\src;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\config;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\openssl\openssl\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\uv\include;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\zlib;C:\Users\Administrator\AppData\Local\node-gyp\Cache\18.18.2\deps\v8\include;D:\dev\electron\chrome-power-app-latest\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;V8_DEPRECATION_WARNINGS;V8_IMMINENT_DEPRECATION_WARNINGS;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\include\node;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\src;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\config;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\openssl\openssl\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\uv\include;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\zlib;C:\Users\xifan\AppData\Local\node-gyp\Cache\21.7.1\deps\v8\include;C:\Users\xifan\code\chrome-power-app\node_modules\node-addon-api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=window-addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -140,11 +140,11 @@
     <ClCompile Include="..\window-addon.cpp">
       <ObjectFileName>$(IntDir)\window-addon.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="D:\dev\electron\chrome-power-app-latest\node_modules\node-gyp\src\win_delay_load_hook.cc"/>
+    <ClCompile Include="C:\Users\xifan\code\chrome-power-app\node_modules\node-gyp\src\win_delay_load_hook.cc"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\node_modules\node-addon-api\nothing.vcxproj">
-      <Project>{14E2DB76-F35B-0A4B-4B8F-ABEE39A317FC}</Project>
+      <Project>{659F33DA-873A-37FD-E2FE-C8BA7AA9474E}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

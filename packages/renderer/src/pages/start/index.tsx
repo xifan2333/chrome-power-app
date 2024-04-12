@@ -127,28 +127,6 @@ export default function Start() {
                 />
               ))}
             </Space>
-            // <div>
-            //   {PIN_URL.map((pingUrl, index) => {
-            //     return (
-            //       <span
-            //         key={index}
-            //         className="mr-4"
-            //       >
-            //         <span className="relative inline-block h-3 w-3 mr-3">
-            //           {checking && (
-            //             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-            //           )}
-            //           <span
-            //             className={`absolute inline-flex rounded-full h-3 w-3 bg-${getStatus(
-            //               pings[index]?.status,
-            //             )}-500`}
-            //           ></span>
-            //         </span>
-            //         <span className="text-gray-800">{pingUrl.n}</span>
-            //       </span>
-            //     );
-            //   })}
-            // </div>
           }
           className="bg-white mx-auto max-w-2xl text-black rounded-lg shadow-lg p-4 transition-all duration-500 ease-in-out hover:shadow-2xl h-[800px]"
         >

@@ -1,27 +1,28 @@
-import {join} from 'path';
-import {ProxyDB} from '../db/proxy';
-import {WindowDB} from '../db/window';
+import { join } from 'path';
+import { ProxyDB } from '../db/proxy';
+import { WindowDB } from '../db/window';
 // import {getChromePath} from './device';
-import {BrowserWindow} from 'electron';
-import type {Page} from 'puppeteer';
-import puppeteer from 'puppeteer';
-import {execSync, spawn} from 'child_process';
+import { BrowserWindow } from 'electron';
+import { execSync, spawn } from 'child_process';
 import * as portscanner from 'portscanner';
-import {sleep} from '../utils/sleep';
+import { sleep } from '../utils/sleep';
+import puppeteer from 'puppeteer';
+import {type Page} from 'puppeteer';
 import SocksServer from '../proxy-server/socks-server';
-import type {DB} from '../../../shared/types/db';
-import type {IP} from '../../../shared/types/ip';
-import {type IncomingMessage, type Server, type ServerResponse} from 'http';
-import {createLogger} from '../../../shared/utils/logger';
-import {WINDOW_LOGGER_LABEL} from '../constants';
-import {db} from '../db';
-import {getProxyInfo} from './prepare';
+import type { DB } from '../../../shared/types/db';
+import type { IP } from '../../../shared/types/ip';
+import { type IncomingMessage, type Server, type ServerResponse } from 'http';
+import { createLogger } from '../../../shared/utils/logger';
+import { WINDOW_LOGGER_LABEL } from '../constants';
+import { db } from '../db';
+import { getProxyInfo } from './prepare';
 import * as ProxyChain from 'proxy-chain';
 import api from '../../../shared/api/api';
-import {getSettings} from '../utils/get-settings';
-import {getPort} from '../server/index';
-import {randomFingerprint} from '../services/window-service';
-import {bridgeMessageToUI, getClientPort} from '../mainWindow';
+import { getSettings } from '../utils/get-settings';
+import { getPort } from '../server/index';
+import { randomFingerprint } from '../services/window-service';
+import { bridgeMessageToUI, getClientPort } from '../mainWindow';
+
 
 const logger = createLogger(WINDOW_LOGGER_LABEL);
 
@@ -31,21 +32,22 @@ const HOST = '127.0.0.1';
 // console.log(HomePath);
 
 const attachFingerprintToPuppeteer = async (page: Page, ipInfo: IP) => {
-  page.on('framenavigated', async _msg => {
+  page.on('domcontentloaded', async _msg => {
     try {
       const title = await page.title();
+
       if (!title.includes('By ChromePower')) {
-        await page.evaluate(title => {
+        await page.evaluate(async title => {
           document.title = title + ' By ChromePower';
         }, title);
       }
 
-      await page.setGeolocation({latitude: ipInfo.ll?.[0], longitude: ipInfo.ll?.[1]});
+      await page.setGeolocation({ latitude: ipInfo.ll?.[0], longitude: ipInfo.ll?.[1] });
       await page.emulateTimezone(ipInfo.timeZone);
     } catch (error) {
       bridgeMessageToUI({
         type: 'error',
-        text: (error as {message: string}).message,
+        text: (error as { message: string }).message,
       });
       logger.error(error);
     }
@@ -62,7 +64,7 @@ async function connectBrowser(
   openStartPage: boolean = true,
 ) {
   const browserURL = `http://${HOST}:${port}`;
-  const {data} = await api.get(browserURL + '/json/version');
+  const { data } = await api.get(browserURL + '/json/version');
   if (data.webSocketDebuggerUrl) {
     const browser = await puppeteer.connect({
       browserWSEndpoint: data.webSocketDebuggerUrl,
@@ -78,17 +80,23 @@ async function connectBrowser(
     const pages = await browser.pages();
     const page =
       pages.length &&
-      (pages?.[0]?.url() === 'about:blank' ||
-        !pages?.[0]?.url() ||
-        pages?.[0]?.url() === 'chrome://new-tab-page/')
+        (pages?.[0]?.url() === 'about:blank' ||
+          !pages?.[0]?.url() ||
+          pages?.[0]?.url() === 'chrome://newtab/' ||
+          pages?.[0]?.url() === '' ||
+          pages?.[0]?.url() === 'chrome://new-tab-page/')
         ? pages?.[0]
         : await browser.newPage();
     try {
       await attachFingerprintToPuppeteer(page, ipInfo);
+      // fix: 找不到窗口的情况
+
       if (getClientPort() && openStartPage) {
         await page.goto(
           `http://localhost:${getClientPort()}/#/start?windowId=${windowId}&serverPort=${getPort()}`,
         );
+      }else{
+        await page.reload();
       }
     } catch (error) {
       logger.error(error);
@@ -96,6 +104,7 @@ async function connectBrowser(
     return data;
   }
 }
+
 
 const getDriverPath = () => {
   const settings = getSettings();
@@ -109,6 +118,7 @@ const getDriverPath = () => {
 
 export async function openFingerprintWindow(id: number) {
   const windowData = await WindowDB.getById(id);
+
   const proxyData = await ProxyDB.getById(windowData.proxy_id);
   const proxyType = proxyData?.proxy_type?.toLowerCase();
   const settings = getSettings();
@@ -123,7 +133,7 @@ export async function openFingerprintWindow(id: number) {
   );
   const driverPath = getDriverPath();
 
-  let ipInfo = {timeZone: '', ip: '', ll: [], country: ''};
+  let ipInfo = { timeZone: '', ip: '', ll: [], country: '' };
   if (windowData.proxy_id && proxyData.ip) {
     ipInfo = await getProxyInfo(proxyData);
     if (!ipInfo?.ip) {
@@ -221,9 +231,12 @@ export async function openFingerprintWindow(id: number) {
     });
 
     await sleep(1);
-
+// todo：fix ! 这段连接浏览器的代码添加上之后会检测为机器人
     try {
-      return connectBrowser(chromePort, ipInfo, windowData.id, !!windowData.proxy_id);
+
+      const result = await connectBrowser(chromePort, ipInfo, windowData.id, !!windowData.proxy_id);
+      return result;
+
     } catch (error) {
       logger.error(error);
       execSync(`taskkill /PID ${chromeInstance.pid} /F`);
@@ -287,7 +300,7 @@ async function createSocksProxy(proxyData: DB.Proxy) {
 }
 
 export async function resetWindowStatus(id: number) {
-  await WindowDB.update(id, {status: 1, port: undefined});
+  await WindowDB.update(id, { status: 1, port: undefined });
 }
 
 export async function closeFingerprintWindow(id: number, force = false) {
@@ -298,14 +311,14 @@ export async function closeFingerprintWindow(id: number, force = false) {
     if (force) {
       try {
         const browserURL = `http://${HOST}:${port}`;
-        const browser = await puppeteer.connect({browserURL, defaultViewport: null});
+        const browser = await puppeteer.connect({ browserURL, defaultViewport: null });
         logger.info('close browser', browserURL);
         await browser?.close();
       } catch (error) {
         logger.error(error);
       }
     }
-    await WindowDB.update(id, {status: 1, port: undefined});
+    await WindowDB.update(id, { status: 1, port: undefined });
     const win = BrowserWindow.getAllWindows()[0];
     if (win) {
       win.webContents.send('window-closed', id);
@@ -313,8 +326,10 @@ export async function closeFingerprintWindow(id: number, force = false) {
   }
 }
 
+
+
 export default {
   openFingerprintWindow,
-
   closeFingerprintWindow,
+  resetWindowStatus,
 };

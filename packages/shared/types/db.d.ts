@@ -28,6 +28,7 @@ export namespace DB {
     ip_country?: string;
     ip_checker?: string;
     tags_name?: string[];
+
   }
 
   export interface Proxy {

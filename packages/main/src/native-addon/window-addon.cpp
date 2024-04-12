@@ -1,252 +1,299 @@
+// -*- coding: UTF-8 -*-
+
 #include <napi.h>
 #include <windows.h>
 #include <vector>
+#include <iostream>
+#include <regex>
+#include <chrono>
 
 std::vector<HWND> chromeWindows;
 int screenWidth, screenHeight;
-std::vector<HWND> g_slaveWindows;
-HHOOK g_keyboardHook = NULL;
-HHOOK g_mouseHook = NULL;
-HWND g_masterWindow = NULL;
-Napi::ThreadSafeFunction g_controlActionCallback;
+HWND master;
+std::vector<HWND> slaves;
+HWND masterDocument;
+std::vector<HWND> slaveDocuments;
+HHOOK g_hMouseHook;
 
-struct ControlActionData
+struct Params
 {
-    std::string action;
+  std::wregex titlePattern;
+  std::wregex classPattern;
+  std::vector<HWND> &windows;
 };
 
-BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK FindWindowsByRegexCallBack(HWND hwnd, LPARAM lParam)
 {
-    const DWORD TITLE_SIZE = 1024;
-    WCHAR windowTitle[TITLE_SIZE];
+  const int SIZE = 1024;
+  WCHAR windowTitle[SIZE];
+  GetWindowTextW(hwnd, windowTitle, SIZE);
 
-    GetWindowTextW(hwnd, windowTitle, TITLE_SIZE);
+  WCHAR className[SIZE];
+  GetClassNameW(hwnd, className, sizeof(className) / sizeof(WCHAR));
 
-    int length = ::GetWindowTextLength(hwnd);
-    std::wstring title(&windowTitle[0]);
-    if (!IsWindowVisible(hwnd) || length == 0 || title.find(L"By ChromePower") == std::wstring::npos)
-    {
-        return TRUE;
-    }
-
-    chromeWindows.push_back(hwnd);
+  Params *params = reinterpret_cast<Params *>(lParam);
+  bool visble = IsWindowVisible(hwnd);
+  bool titleMatch = std::regex_match(windowTitle, params->titlePattern);
+  bool classNameMatch = std::regex_match(className, params->classPattern);
+  if (!visble || !titleMatch || !classNameMatch)
+  {
     return TRUE;
+  }
+  params->windows.push_back(hwnd);
+  return TRUE;
 }
 
-BOOL CALLBACK EnumWindowsProcByPid(HWND hwnd, LPARAM lParam)
+void debounce(std::function<void()> func, int interval)
 {
-    DWORD processId = 0;
-    GetWindowThreadProcessId(hwnd, &processId);
+  static std::chrono::steady_clock::time_point last_call = std::chrono::steady_clock::now();
+  auto now = std::chrono::steady_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_call);
+  if (duration.count() > interval)
+  {
+    func();
+    last_call = now;
+  }
+}
+std::wstring GetWindowTitle(HWND hwnd)
+{
+  const int SIZE = 1024;
+  WCHAR windowTitle[SIZE];
+  GetWindowTextW(hwnd, windowTitle, SIZE);
+  return windowTitle;
+}
 
-    if (processId == (DWORD)lParam)
-    {
-        chromeWindows.push_back(hwnd);
-    }
+std::wstring GetWindowClassName(HWND hwnd)
+{
+  const int SIZE = 1024;
+  WCHAR className[SIZE];
+  GetClassNameW(hwnd, className, sizeof(className) / sizeof(WCHAR));
+  return className;
+}
 
-    return TRUE;
+std::vector<HWND> FindWindowsByRegex(const std::wstring &titleRegex = L".*", const std::wstring &classRegex = L".*", HWND parentHwnd = NULL)
+{
+  std::vector<HWND> windows;
+  Params params = {std::wregex(titleRegex), std::wregex(classRegex), windows};
+
+  if (parentHwnd != NULL)
+  {
+    EnumChildWindows(parentHwnd, FindWindowsByRegexCallBack, reinterpret_cast<LPARAM>(&params));
+  }
+  else
+  {
+    EnumWindows(FindWindowsByRegexCallBack, reinterpret_cast<LPARAM>(&params));
+  }
+
+  return windows;
 }
 
 void TileWindows()
 {
-    chromeWindows.clear();
 
-    screenWidth = GetSystemMetrics(SM_CXSCREEN);
-    screenHeight = GetSystemMetrics(SM_CYSCREEN);
+  chromeWindows.clear();
 
-    EnumWindows(EnumWindowsProc, NULL);
+  screenWidth = GetSystemMetrics(SM_CXSCREEN);
+  screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-    int numWindows = chromeWindows.size();
+  chromeWindows = FindWindowsByRegex(L".*By ChromePower.*");
 
-    // Handle no windows found
-    if (numWindows == 0)
-    {
-        return;
-    }
+  int numWindows = chromeWindows.size();
 
-    // Handle only one window found
-    if (numWindows == 1)
-    {
-        // Optional: Maximize the single window
-        // ShowWindow(chromeWindows[0], SW_MAXIMIZE);
-        return;
-    }
+  if (numWindows == 0)
+  {
+    return;
+  }
 
-    int rows = ceil(sqrt(numWindows));
-    int cols = ceil((double)numWindows / rows);
-    int windowWidth = screenWidth / cols;
-    int windowHeight = screenHeight / rows;
+  if (numWindows == 1)
+  {
 
-    for (size_t i = 0; i < chromeWindows.size(); i++)
-    {
-        int col = i % cols;
-        int row = i / cols;
-        MoveWindow(chromeWindows[i], col * windowWidth, row * windowHeight, windowWidth, windowHeight, TRUE);
-        SetForegroundWindow(chromeWindows[i]);
-    }
+    ShowWindow(chromeWindows[0], SW_MAXIMIZE);
+    SetForegroundWindow(chromeWindows[0]);
+    return;
+  }
+
+  int rows = ceil(sqrt(numWindows));
+  int cols = ceil((double)numWindows / rows);
+
+  int windowWidth = screenWidth / cols;
+  int windowHeight = screenHeight / rows;
+
+  for (size_t i = 0; i < chromeWindows.size(); i++)
+  {
+
+    int col = i % cols;
+    int row = i / cols;
+
+    MoveWindow(chromeWindows[i], col * windowWidth, row * windowHeight, windowWidth, windowHeight, TRUE);
+    SetForegroundWindow(chromeWindows[i]);
+  };
 }
-
-void CallControlActionCallback(const std::string &action)
+void ReplayEventInSlaveWindows(HWND masterWindow, std::vector<HWND> slaveWindows, MSLLHOOKSTRUCT *mouseInfo, WPARAM event)
 {
-    try {
-        auto data = new ControlActionData{action};
-        g_controlActionCallback.NonBlockingCall(data, [](Napi::Env env, Napi::Function jsCallback, ControlActionData *data) {
-            jsCallback.Call({Napi::String::New(env, data->action)});
-            delete data;
-        });
-    } catch (const std::exception& e) {
-        // Â§ÑÁêÜÊàñËÆ∞ÂΩïÂºÇÂ∏∏
-        std::cerr << "Exception in CallControlActionCallback: " << e.what() << std::endl;
-    }
-}
-
-POINT ConvertScreenToClient(HWND hwnd, POINT pt)
-{
-    ScreenToClient(hwnd, &pt);
-    return pt;
-}
-
-LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-    if (nCode >= 0)
+  POINT pt = mouseInfo->pt;
+  ScreenToClient(masterWindow, &pt);
+  for (HWND slave : slaveWindows)
+  {
+    if (event == WM_LBUTTONDOWN)
     {
-        // Ëé∑Âèñ‰∫ã‰ª∂ÂÖ≥ËÅîÁöÑÁ™óÂè£Âè•ÊüÑ
-        KBDLLHOOKSTRUCT *kbStruct = (KBDLLHOOKSTRUCT *)lParam;
-        HWND currentWindow = GetForegroundWindow();
-
-        if (currentWindow == g_masterWindow)
-        {
-            // Â§ÑÁêÜÈîÆÁõò‰∫ã‰ª∂ÔºåÈáçÊîæÂà∞Ë¢´ÊéßÁ™óÂè£
-            for (HWND hwnd : g_slaveWindows)
-            {
-                PostMessage(hwnd, WM_KEYDOWN, wParam, lParam);
-            }
-        }
+      SendMessage(slave, WM_LBUTTONDOWN, 0, MAKELPARAM(pt.x, pt.y));
     }
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
+    else if (event == WM_LBUTTONUP)
+    {
+      SendMessage(slave, WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    }
+    else if (event == WM_RBUTTONDOWN)
+    {
+      SendMessage(slave, WM_RBUTTONDOWN, 0, MAKELPARAM(pt.x, pt.y));
+    }
+    else if (event == WM_RBUTTONUP)
+    {
+      SendMessage(slave, WM_RBUTTONUP, 0, MAKELPARAM(pt.x, pt.y));
+    }
+    else if (event == WM_MOUSEMOVE)
+    {
+      debounce([slave, pt]()
+               { SendMessage(slave, WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)); },
+               100);
+    }
+    else if (event == WM_MOUSEWHEEL)
+    {
+      int wheelDelta = GET_WHEEL_DELTA_WPARAM(mouseInfo->mouseData);
+      std::wstring currentTitle = GetWindowTitle(slave);
+      std::wcout << currentTitle << std::endl;
+      std::cout << wheelDelta << std::endl;
+      debounce([slave, wheelDelta, pt]()
+               {
+                bool result = SendMessage(slave, WM_MOUSEWHEEL, MAKEWPARAM(0, wheelDelta), MAKELPARAM(pt.x, pt.y));
+                std::wcout << result << std::endl; },
+               100);
+    }
+  }
 }
-
 LRESULT CALLBACK MouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-    if (nCode >= 0)
+  if (nCode >= 0)
+  {
+    if (wParam == WM_LBUTTONDOWN ||
+        wParam == WM_RBUTTONDOWN ||
+        wParam == WM_LBUTTONUP ||
+        wParam == WM_RBUTTONUP ||
+        wParam == WM_MOUSEMOVE ||
+        wParam == WM_MOUSEWHEEL)
     {
-        MOUSEHOOKSTRUCT *pMouseStruct = (MOUSEHOOKSTRUCT *)lParam;
-        HWND currentWindow = GetForegroundWindow();
-        if (pMouseStruct != NULL && currentWindow == g_masterWindow)
+      //! ªÒ»° Û±Í ¬º˛–≈œ¢
+      MSLLHOOKSTRUCT *mouseInfo = reinterpret_cast<MSLLHOOKSTRUCT *>(lParam);
+      if (mouseInfo != NULL)
+      {
+        HWND hwnd = WindowFromPoint(mouseInfo->pt);
+        //! »Áπ˚ «÷˜¥∞ø⁄£¨‘ÚΩ´ ¬º˛◊™∑¢µΩ¥”¥∞ø⁄
+        if (hwnd == master)
         {
-            if (pMouseStruct != NULL)
-            {
-                if (wParam == WM_LBUTTONDOWN || wParam == WM_LBUTTONUP)
-                {
-                    for (HWND hwnd : g_slaveWindows)
-                    {
-                        POINT clientPt = ConvertScreenToClient(hwnd, pMouseStruct->pt);
-                        CallControlActionCallback("mouse-click-action");
-                        PostMessage(hwnd, wParam, 0, MAKELPARAM(clientPt.x, clientPt.y));
-                    }
-                }
-                else if (wParam == WM_MOUSEWHEEL)
-                {
-                    for (HWND hwnd : g_slaveWindows)
-                    {
-                        CallControlActionCallback("mouse-wheel-action");
-                        PostMessage(hwnd, wParam, wParam, MAKELPARAM(pMouseStruct->pt.x, pMouseStruct->pt.y));
-                    }
-                }
-            }
+          ReplayEventInSlaveWindows(master, slaves, mouseInfo, wParam);
         }
+        std::wstring currentWindowClassName = GetWindowClassName(hwnd);
+        bool isMasterChild = GetParent(hwnd) == master;
+        if (currentWindowClassName == L"Chrome_RenderWidgetHostHWND" && isMasterChild)
+        {
+          // ! ªÒ»°÷˜Œƒµµ¥∞ø⁄
+          masterDocument = hwnd;
+          slaveDocuments.clear();
+          for (size_t i = 0; i < slaves.size(); i++)
+          {
+            HWND slave = slaves[i];
+            std::vector<HWND> slaveWindows = FindWindowsByRegex(L".*", L"Chrome_RenderWidgetHostHWND", slave);
+            if (slaveWindows.size() > 0)
+            {
+              slaveDocuments.push_back(slaveWindows[0]);
+            }
+          }
+          ReplayEventInSlaveWindows(masterDocument, slaveDocuments, mouseInfo, wParam);
+        }
+      }
     }
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
+  }
+  return CallNextHookEx(NULL, nCode, wParam, lParam);
+}
+void UninstallHook()
+{
+  if (g_hMouseHook != NULL)
+  {
+    UnhookWindowsHookEx(g_hMouseHook);
+    g_hMouseHook = NULL;
+  }
 }
 
-void ControlWindows(HWND masterWindow, const std::vector<HWND> &slaveWindows)
+void StartGroupControl()
 {
-    g_masterWindow = masterWindow;
-    g_slaveWindows = slaveWindows;
+  chromeWindows.clear();
+  chromeWindows = FindWindowsByRegex(L".*By ChromePower.*", L".*Chrome_WidgetWin_1.*", NULL);
+  int numWindows = chromeWindows.size();
+  if (numWindows == 0)
+  {
+    return;
+  }
+  if (numWindows == 1)
+  {
+    SetForegroundWindow(chromeWindows[0]);
+    return;
+  }
 
-    g_keyboardHook = SetWindowsHookEx(WH_KEYBOARD_LL, KeyboardProc, NULL, 0);
+  master = chromeWindows[0];
 
-    g_mouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, NULL, 0);
+  slaves.clear();
+  for (size_t i = 1; i < chromeWindows.size(); i++)
+  {
+    slaves.push_back(chromeWindows[i]);
+  }
+
+  g_hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, MouseProc, NULL, 0);
 }
 
-void SetControlActionCallback(const Napi::CallbackInfo &info)
+Napi::Object TileChromeWindows(const Napi::CallbackInfo &info)
 {
-    Napi::Env env = info.Env();
-    g_controlActionCallback = Napi::ThreadSafeFunction::New(
-        env,
-        info[0].As<Napi::Function>(),
-        "ControlActionCallback",
-        0,
-        1);
-}
-
-Napi::String TileChromeWindows(const Napi::CallbackInfo &info)
-{
-    Napi::Env env = info.Env();
-
+  Napi::Env env = info.Env();
+  Napi::Object result = Napi::Object::New(env);
+  try
+  {
     TileWindows();
+    result.Set("success", true);
+    result.Set("message", "Windows tiled successfully");
+    return result;
+  }
+  catch (const std::exception &e)
+  {
 
-    return Napi::String::New(env, "Tiled Chrome windows");
+    result.Set("success", false);
+    result.Set("message", e.what());
+    return result;
+  }
 }
 
-Napi::String StartGroupControl(const Napi::CallbackInfo &info)
+Napi::Object startGroupControl(const Napi::CallbackInfo &info)
 {
-    Napi::Env env = info.Env();
+  Napi::Env env = info.Env();
+  Napi::Object result = Napi::Object::New(env);
+  try
+  {
+    StartGroupControl();
+    result.Set("success", true);
+    result.Set("message", "Group control started successfully");
+    return result;
+  }
+  catch (const std::exception &e)
+  {
 
-    // Ê£ÄÊü•ÂèÇÊï∞Êï∞ÈáèÂíåÁ±ªÂûã
-    if (info.Length() < 2 || !info[0].IsNumber() || !info[1].IsArray())
-    {
-        Napi::TypeError::New(env, "Expected master process ID and array of slave process IDs").ThrowAsJavaScriptException();
-        return Napi::String::New(env, "Error");
-    }
-
-    DWORD masterProcessId = info[0].As<Napi::Number>().Uint32Value();
-    Napi::Array slaveProcessIds = info[1].As<Napi::Array>();
-
-    // Ê∏ÖÈô§ÊóßÁöÑÁ™óÂè£Âè•ÊüÑ
-    chromeWindows.clear();
-
-    // Êü•Êâæ‰∏ªÊéßÁ™óÂè£Âè•ÊüÑ
-    EnumWindows(EnumWindowsProcByPid, (LPARAM)masterProcessId);
-    if (chromeWindows.empty())
-    {
-        return Napi::String::New(env, "No master window found for the given process ID");
-    }
-    HWND masterWindow = chromeWindows[0];
-
-    // Êü•ÊâæË¢´ÊéßÁ™óÂè£Âè•ÊüÑ
-    std::vector<HWND> slaveWindows;
-    for (size_t i = 0; i < slaveProcessIds.Length(); ++i)
-    {
-        DWORD slaveProcessId = slaveProcessIds.Get(i).As<Napi::Number>().Uint32Value();
-        chromeWindows.clear();
-        EnumWindows(EnumWindowsProcByPid, (LPARAM)slaveProcessId);
-        slaveWindows.insert(slaveWindows.end(), chromeWindows.begin(), chromeWindows.end());
-    }
-
-    ControlWindows(masterWindow, slaveWindows);
-
-    return Napi::String::New(env, "Started group control");
-}
-void UninstallHooks()
-{
-    if (g_keyboardHook != NULL)
-    {
-        UnhookWindowsHookEx(g_keyboardHook);
-        g_keyboardHook = NULL;
-    }
-    if (g_mouseHook != NULL)
-    {
-        UnhookWindowsHookEx(g_mouseHook);
-        g_mouseHook = NULL;
-    }
+    result.Set("success", false);
+    result.Set("message", e.what());
+    return result;
+  }
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
-    exports.Set("setControlActionCallback", Napi::Function::New(env, SetControlActionCallback));
-    exports.Set("tileChromeWindows", Napi::Function::New(env, TileChromeWindows));
-    exports.Set("startGroupControl", Napi::Function::New(env, StartGroupControl));
-    return exports;
+  exports.Set("tileChromeWindows", Napi::Function::New(env, TileChromeWindows));
+  exports.Set("startGroupControl", Napi::Function::New(env, startGroupControl));
+  return exports;
 }
 
 NODE_API_MODULE(windowAddon, Init)

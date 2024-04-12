@@ -27,6 +27,7 @@ const all = async () => {
       'proxy.proxy_type',
       'proxy.ip_country',
       'proxy.ip_checker',
+
     )
     .leftJoin('group', 'window.group_id', '=', 'group.id')
     .leftJoin('proxy', 'window.proxy_id', '=', 'proxy.id')
@@ -56,6 +57,7 @@ const getOpenedWindows = async () => {
       'proxy.proxy_type',
       'proxy.ip_country',
       'proxy.ip_checker',
+
     )
     .leftJoin('group', 'window.group_id', '=', 'group.id')
     .leftJoin('proxy', 'window.proxy_id', '=', 'proxy.id')
